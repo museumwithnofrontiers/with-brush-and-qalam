@@ -31,18 +31,18 @@ const meta = sectionMeta()
 // back to the landing page — no records, no facets. A second static page
 // (credits, a legal notice) is one more spec and one more route the same way.
 const about = {
-  body: '__SITE_NAMESPACE__.about.body',
+  body: 'withBrushAndQalam.about.body',
   back: { label: 'core.action.back', to: { name: 'home' } },
 }
 
 export default {
   // The dataset package this website renders. Must match the alias in
   // vite.config.js and the dependency in package.json.
-  datasetPackage: '@museumwnf/__DATASET__-data',
+  datasetPackage: '@museumwnf/with-brush-and-qalam-data',
 
   // The website's name, as the package declares it. The fallback is what a
   // package predating `manifest.site` still shows.
-  siteName: manifest.site?.names?.en ?? '__DATASET__',
+  siteName: manifest.site?.names?.en ?? 'with-brush-and-qalam',
 
   features: {
     // No generic entity pages. viewer-core can publish one list and one detail
@@ -67,19 +67,19 @@ export default {
   // that the view resolves — a translator's file changes the page. The
   // record on display is one item with an image, picked once per visit.
   home: {
-    title: '__SITE_NAMESPACE__.identity.title',
-    intro: '__SITE_NAMESPACE__.home.intro',
+    title: 'withBrushAndQalam.identity.title',
+    intro: 'withBrushAndQalam.home.intro',
     cards: [
       {
-        title: '__SITE_NAMESPACE__.nav.catalogue',
-        description: '__SITE_NAMESPACE__.home.catalogueText',
+        title: 'withBrushAndQalam.nav.catalogue',
+        description: 'withBrushAndQalam.home.catalogueText',
         action: 'core.action.browse',
         to: { name: 'catalogue' },
       },
     ],
     featured: {
       entity: 'items',
-      heading: '__SITE_NAMESPACE__.home.itemOnDisplay',
+      heading: 'withBrushAndQalam.home.itemOnDisplay',
       action: 'core.action.viewDetails',
       route: 'item',
       eyebrow: 'type',
@@ -103,8 +103,8 @@ export default {
     languages: languageLabels(languages),
     links: [
       { section: 'home', label: 'core.nav.home', to: { name: 'home' } },
-      { section: 'catalogue', label: '__SITE_NAMESPACE__.nav.catalogue', to: { name: 'catalogue' } },
-      { section: 'about', label: '__SITE_NAMESPACE__.nav.about', to: { name: 'about' } },
+      { section: 'catalogue', label: 'withBrushAndQalam.nav.catalogue', to: { name: 'catalogue' } },
+      { section: 'about', label: 'withBrushAndQalam.nav.about', to: { name: 'about' } },
     ],
   },
 
@@ -154,7 +154,7 @@ export default {
   //   import { standardRoutes } from '@museumwnf/viewer-layout/dxa'
   //
   //   extraViews: [
-  //     ...standardRoutes('gallery', { creditsBody: '__SITE_NAMESPACE__.credits.body' }),
+  //     ...standardRoutes('gallery', { creditsBody: 'withBrushAndQalam.credits.body' }),
   //     // + this website's own routes: home, item, collection entrance,
   //     // timeline entrance, partners entrance
   //   ]
@@ -166,11 +166,11 @@ export default {
   //   extraViews: [
   //     ...standardRoutes('exhibition', {
   //       partnerObjects: {
-  //         emptyPartner: '__SITE_NAMESPACE__.partnerObjects.emptyPartner',
-  //         emptyInstitution: '__SITE_NAMESPACE__.partnerObjects.emptyInstitution',
-  //         institutionSummary: '__SITE_NAMESPACE__.partner.monumentsInExhibition',
-  //         partnerProfileLabel: '__SITE_NAMESPACE__.partnerObjects.partnerProfile',
-  //         institutionProfileLabel: '__SITE_NAMESPACE__.partnerObjects.institutionProfile',
+  //         emptyPartner: 'withBrushAndQalam.partnerObjects.emptyPartner',
+  //         emptyInstitution: 'withBrushAndQalam.partnerObjects.emptyInstitution',
+  //         institutionSummary: 'withBrushAndQalam.partner.monumentsInExhibition',
+  //         partnerProfileLabel: 'withBrushAndQalam.partnerObjects.partnerProfile',
+  //         institutionProfileLabel: 'withBrushAndQalam.partnerObjects.institutionProfile',
   //       },
   //     }),
   //     // + this website's own routes: home, item, collection entrance,
