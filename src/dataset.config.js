@@ -1,211 +1,330 @@
 import {
-  languageLabels, mwnfLinks, offeredLanguages, sectionMeta, useDataPackage,
+  languageLabels, loadEntities, mwnfLinks, offeredLanguages, sectionMeta, useDataPackage,
 } from '@museumwnf/viewer-core'
-import {
-  CatalogueResultsView, HomeView, RecordView, TextPageView,
-} from '@museumwnf/viewer-layout/views'
+import { itemFromUidPath, partnerFromKey } from '@museumwnf/viewer-core/legacy'
+import { TextPageView } from '@museumwnf/viewer-layout/views'
+import { standardRoutes } from '@museumwnf/viewer-layout/dxa'
 import SiteShell from './SiteShell.vue'
-import { catalogue, sheet } from './composables/useCatalogue.js'
+import { countries, items, visiblePartners, hasTimeline } from './composables/exhibitionData.js'
+import { creditsSpec } from './composables/textPageSpecs.js'
 
 // The whole declaration of this website. Before it mounts, the website reads
 // nothing from its package but the manifest: the languages it offers, their
-// labels and its name come from `manifest.site`, and every record is loaded by
-// the route that reads it. Nothing else in `src/` imports `@inventory-data`.
+// labels and its name come from `manifest.site`, and every record is loaded
+// by the route that reads it.
 
 const { manifest } = useDataPackage()
 
-// The languages the package declares for this site, kept where the item
-// translations actually carry them. Pass `{ declared: [...] }` to offer fewer
-// than the package declares — a site whose chrome is English-only, say.
+// ── Source-project site config (epic #1727 phase 4) ─────────────────────────
 //
-// A record may carry more languages than the site offers; its own page reads
-// those from `useRecordLanguage`, without touching the site language.
+// Per-project-UUID editorial choices composables/sheet.js makes about a
+// borrowed item's source, on top of RecordSheetView's own spec keys (epic
+// #1728): which colour swatch its chip uses (one of the site's own
+// `mwnf-chip--<name>` classes, `src/styles/site.css` — not viewer-layout's
+// shared `mwnf-chip--<family>` vocabulary, `content.css`, which named its
+// families after legacy project keys and which this exhibition no longer
+// keys anything off), and which projects still get the Explore-partner
+// notice legacy showed on the sheet. Both keyed by project UUID, read from
+// this package's own `manifest.projects`
+// (`npm pack @museumwnf/with-brush-and-qalam-data`) — never the legacy project
+// key, which this exhibition no longer reads. Shared verbatim with the
+// sibling the-use-of-colours-in-art; that package's own UUIDs differ (no
+// Discover Baroque Art or Discover Carpet Art here; "The Table Is Set"
+// instead, legacy's `EXTHE`, which shared the exhibition's own `EXH` family
+// — `PROJECT_FAMILIES.EXTHE` in viewer-core's now-deprecated table), so this
+// copy of the two maps is ported by hand, not copied.
+export const projectColors = {
+  '0ca36c45-f02c-5743-aa86-fe3cce6e8a36': 'exhibition', // With Brush and Qalam (this exhibition's own project, or borrowed from another exhibition — shares the 'exhibition' family)
+  '928f5e0d-53e3-5f53-b9c2-5af389c30dd4': 'islamic-art', // Explore Islamic Art Collections — shares Discover Islamic Art's colour
+}
+
+// Legacy's Explore-partner notice, shown only on a sheet borrowed from
+// Explore Islamic Art Collections.
+export const noticeProjects = [
+  '928f5e0d-53e3-5f53-b9c2-5af389c30dd4', // Explore Islamic Art Collections
+]
+
+// The languages this exhibition publishes (`exhibition_i18n.enabled`, declared
+// by the package as `site.languages`), kept where the item translations
+// actually carry them. An item sheet may offer more — whatever languages the
+// record itself carries — from its own switcher, without touching the site
+// language.
 const languages = offeredLanguages()
 
-// Every route names the section it belongs to and the entities its own view
-// reads on top of that; this website has no chrome entities every page loads
-// regardless, so `sectionMeta()` takes none.
-const meta = sectionMeta()
-
-// The About page: viewer-layout's TextPageView on one body entry and a link
-// back to the landing page — no records, no facets. A second static page
-// (credits, a legal notice) is one more spec and one more route the same way.
-const about = {
-  body: 'withBrushAndQalam.about.body',
-  back: { label: 'core.action.back', to: { name: 'home' } },
-}
+// Every page renders the chrome — the header logos, the banner and its
+// caption, the bottom banner and the sponsor strip — off these four; a page
+// adds what it reads on top. A route also says which section it belongs
+// to, and the shell reads that for the banner title and the active menu
+// entry (viewer-core's `useSection`).
+const CHROME = ['exhibition', 'items', 'partners', 'countries']
+const meta = sectionMeta(CHROME)
 
 export default {
   // The dataset package this website renders. Must match the alias in
   // vite.config.js and the dependency in package.json.
   datasetPackage: '@museumwnf/with-brush-and-qalam-data',
 
-  // The website's name, as the package declares it. The fallback is what a
-  // package predating `manifest.site` still shows.
-  siteName: manifest.site?.names?.en ?? 'with-brush-and-qalam',
+  // English is the base language of every catalogue in the platform, so the
+  // name the site is known by is the English one, whatever this build enables.
+  siteName: manifest.site?.names?.en ?? 'With Brush and Qalam',
 
+  // All pages are website-specific views (below) — no generic entity pages.
   features: {
-    // No generic entity pages. viewer-core can publish one list and one detail
-    // page per exported entity, which is useful for looking at a new dataset
-    // and wrong for a website: those routes expose the data package's shape
-    // rather than the site's. Set `entities: entityNames` from
-    // `useDataPackage()` temporarily while exploring; ship `[]`.
     entities: [],
   },
 
-  // The three slots every website has — the home page, a list page, a record
-  // page — are the composed views of viewer-layout: pages made of the shared
-  // components on the shared engine, driven by the declarations below rather
-  // than by a page written here. `home` is the route `/`; `list` and `detail`
-  // are what `features.entities` would publish, named here so that switching
-  // it on while exploring a dataset shows real pages too. A website whose
-  // page is not that shape writes its own component on the same components,
-  // and registers it on the same route name; nothing else changes.
-  views: { home: HomeView, list: CatalogueResultsView, detail: RecordView },
-
-  // What the landing page shows. Every text is an entry name, written out,
-  // that the view resolves — a translator's file changes the page. The
-  // record on display is one item with an image, picked once per visit.
-  home: {
-    title: 'withBrushAndQalam.identity.title',
-    intro: 'withBrushAndQalam.home.intro',
-    cards: [
-      {
-        title: 'withBrushAndQalam.nav.catalogue',
-        description: 'withBrushAndQalam.home.catalogueText',
-        action: 'core.action.browse',
-        to: { name: 'catalogue' },
-      },
-    ],
-    featured: {
-      entity: 'items',
-      heading: 'withBrushAndQalam.home.itemOnDisplay',
-      action: 'core.action.viewDetails',
-      route: 'item',
-      eyebrow: 'type',
-      meta: ['location', 'dates'],
-    },
-  },
-
-  // The site language. One per visit, negotiated once by viewer-core: an
-  // explicit `?lang=`, then the remembered choice, then the browser, then
-  // English.
   languages,
+
+  // The absolute address this build is deployed at, base path included
+  // (viewer-core's README, "the declaration outside a component" —
+  // `sourceUrl()` reads it). GitHub Pages serves this repo at
+  // `https://museumwithnofrontiers.github.io/<repo>`, the same `<repo>` segment
+  // `vite.config.js`'s `BASE_PATH` puts in the build's own base path — so
+  // this changes together with that one, and with the domain, whenever the
+  // site moves off GitHub Pages.
+  site: { origin: 'https://museumwithnofrontiers.github.io/with-brush-and-qalam' },
 
   shell: SiteShell,
 
-  // Everything @museumwnf/viewer-layout's SiteShell reads to build the menu,
-  // the language switcher, the header/footer link lists and the search
-  // submit — see its README, "Site shell". A label is an entry name, resolved
-  // by SiteShell itself (it installs the catalogue), so nothing here builds
-  // menu markup by hand any more.
+  // What viewer-layout's `SiteShell` (src/SiteShell.vue) reads to build the
+  // menu, the header/footer link lists, the search submit and the banner
+  // title of every page but Home — legacy's NavigationComponent, one for one,
+  // with the single rename "related content" → /related. `to`, not a bare
+  // `href`, so a route rename stays one edit. TIMELINE is dropped when the
+  // exhibition reports neither chronology (`hasTimeline`) — both flags gate
+  // the nav entry, not the data.
   navigation: {
     languages: languageLabels(languages),
     links: [
-      { section: 'home', label: 'core.nav.home', to: { name: 'home' } },
-      { section: 'catalogue', label: 'withBrushAndQalam.nav.catalogue', to: { name: 'catalogue' } },
-      { section: 'about', label: 'withBrushAndQalam.nav.about', to: { name: 'about' } },
+      { section: 'about', label: 'exhibition.nav.about', to: { name: 'about' } },
+      { section: 'themes', label: 'exhibition.nav.themes', to: { name: 'themes' } },
+      { section: 'collection', label: 'exhibition.nav.collection', to: { name: 'collection' } },
+      { section: 'partners', label: 'exhibition.nav.partners', to: { name: 'partners' } },
+      { section: 'timeline', label: 'exhibition.nav.timeline', to: { name: 'timeline' }, when: () => hasTimeline.value },
+      { section: 'related', label: 'exhibition.related.title', to: { name: 'related' } },
+      { section: 'credits', label: 'exhibition.nav.credits', to: { name: 'credits' } },
+      { label: 'exhibition.nav.myCollection', href: mwnfLinks.myCollection, external: true },
     ],
+    headerLinks: [
+      { label: 'core.nav.home', to: { name: 'home' } },
+      { label: 'exhibition.footer.aboutMwnf', href: mwnfLinks.about, external: true },
+    ],
+    footerLinks: [
+      { label: 'exhibition.footer.aboutMwnf', href: mwnfLinks.about, external: true },
+      { label: 'exhibition.footer.contact', href: mwnfLinks.contact, external: true },
+      { label: 'exhibition.footer.legalNotice', href: mwnfLinks.legalNotice, external: true },
+      { label: 'exhibition.footer.credits', href: mwnfLinks.credits, external: true },
+      { label: 'exhibition.footer.cookies', href: mwnfLinks.cookies, external: true },
+    ],
+    // The banner title over every section page but Home, which supplies its
+    // own from the exhibition record (src/SiteShell.vue) — a route with none
+    // of these names never renders (`checkSectionMeta` below), so there is no
+    // "error" fallback to declare any more.
+    sectionTitles: {
+      themes: 'exhibition.section.themes',
+      collection: 'exhibition.section.collection',
+      database: 'exhibition.section.database',
+      partners: 'exhibition.section.partners',
+      related: 'exhibition.related.title',
+      timeline: 'exhibition.section.timeline',
+      about: 'exhibition.section.about',
+      credits: 'exhibition.section.credits',
+    },
+    // `all-objects` is legacy's sentinel for an empty submission, and the
+    // value SearchResults matches on. The two must agree: the monorepo
+    // viewer sent `all-items` from here while matching `all-objects` there,
+    // so an empty search reported no results out of the full count instead
+    // of listing everything.
+    search: {
+      route: 'search-results',
+      key: 'q',
+      placeholder: 'exhibition.search.placeholder',
+      submitLabel: 'catalogue.search.submit',
+      empty: 'all-objects',
+    },
   },
 
-  // Where this website's media lives. `mediaUrl(path, size)` builds an address
-  // from a path the data package carries; no view reads `import.meta.env` and
-  // no host is written anywhere but here.
+  // The banner variant is the one thing every page (but the sections Home
+  // gates on `isHome`, src/SiteShell.vue) reads off the route alone: a split
+  // banner with the exhibition's own title/subtitle/headline on Home, a
+  // narrow section strip everywhere else.
+  banner: {
+    variant: ({ section }) => (section === 'home' ? 'split' : 'section'),
+  },
+
+  // Legacy renders category 0 — "Header" — beside the MWNF mark, under the
+  // `header_logo_section_1` heading, and leaves categories 1–4 to the footer
+  // strip. This exhibition has one logo and it is category 1, the UNAOC mark
+  // under "Under the patronage of", so the header block stays empty here too;
+  // the rule is kept because the split is the data's, not this exhibition's.
+  // Each heading is written out: a name assembled from the category id would
+  // resolve at run time and be invisible to the check that every entry a page
+  // asks for exists. Only the two categories that carry real copy are entries
+  // — legacy's slots 3 and 4 hold placeholder text ("MIDDLE RIGHT FOOTER
+  // SECTION FOR LOGOS"), which is not something to ask a translator for.
+  // Those fall back to the legacy category name, exactly as an unlisted
+  // category always did. `logos` (below) is `src/SiteShell.vue`'s own
+  // reshaping of the exhibition's raw logo records into this shape.
+  logos: {
+    header: (logo) => Number(logo.category_id) === 0 && logo.visible !== false,
+    headerTitle: 'exhibition.sponsors.coOrganisers',
+    sponsorGroups: (logos, t) => {
+      const byCategory = new Map()
+      for (const logo of logos) {
+        if (logo.visible === false) continue
+        if (Number(logo.category_id) === 0) continue
+        const key = logo.category_id ?? 0
+        const bucket = byCategory.get(key)
+        if (bucket) bucket.push(logo)
+        else byCategory.set(key, [logo])
+      }
+      return [...byCategory.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([categoryId, group]) => ({
+          title: Number(categoryId) === 1 ? t('exhibition.sponsors.patronage')
+            : Number(categoryId) === 2 ? t('exhibition.sponsors.support')
+              : (group[0].category ?? ''),
+          sponsors: [...group]
+            .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+            .map((logo) => ({ name: logo.alt, href: logo.href, logo: logo.image })),
+        }))
+    },
+  },
+
+  // Exhibition chrome images and related-content documents live on the legacy
+  // media server and were never imported; the package ships the path, this is
+  // the host.
   media: {
     legacyHost: 'https://images.museumwnf.org',
   },
 
-  // Every address this website links out to, by name. `mwnfLinks` is the
-  // portal and its siblings every website links to; a website adds to it
-  // rather than copying it (`links: { ...mwnfLinks, ownPage: '...' }`).
-  links: mwnfLinks,
+  // Every address this website links out to — the twelve portal addresses
+  // every DXA `dataset.config.js` repeats, from viewer-core; this exhibition
+  // has none of its own on top.
+  links: { ...mwnfLinks },
 
-  // The route map. Every route is named, sections are kebab-case, the page
-  // and every filter live in the query, and each route says which section it
-  // belongs to (the shell reads `useSection()` for the banner and the menu).
-  // Each route declares the entities its view reads, so the router loads them
-  // before the view is created and no page renders against records that are
-  // not there yet.
+  // The canonical routes, one view per page: a section is `/<section>`, a
+  // record `/<section>/:id` with the package id, and the language, the page
+  // and every filter travel in the query.
   //
-  // The 'home' name is the slot `views.home` fills. The routes below are the
-  // results page, the record page and the About page on the composed views,
-  // each driven by a spec passed as route props: the catalogue spec says what
-  // the list filters on and how a row looks, the sheet spec says which fields
-  // a record shows under which labels, and the about spec is one body entry.
+  // `/theme/:id` keeps `display_order - 1`, exactly as legacy did — the About
+  // theme is display order 1, so the first listed theme is `/theme/1`. It is
+  // the theme's identity within this exhibition rather than a filter, and the
+  // sub-theme and picture segments name which part of the theme is being
+  // read, which is why they stay in the path.
   //
-  // A gallery or exhibition website does not write its platform pages here at
-  // all: `@museumwnf/viewer-layout/dxa` exports them already composed and
-  // confirmed byte-identical within their family's own site pair, and
-  // `standardRoutes(family, config)` returns them as ready-made route
-  // entries. Such a website spreads `...standardRoutes('<family>', config)`
-  // first in `extraViews`, keeping only its own routes after it — home, item
-  // and the entrances into the collection, the timeline and the partners
-  // section, which stay the website's own because they read this dataset's
-  // shape rather than the shape the factory already covers. Route names and
-  // paths are pinned inside the factory to what every DXA site already
-  // registers, so a deep link or a `legacyRoutes` entry targeting one of them
-  // keeps resolving unmodified — never redeclare one of those names or paths
-  // here. This scaffold is `standalone`, which has no standard routes: the
-  // examples below stay commented out on purpose, and a `standalone` build
-  // must never carry a live import of the DXA entry point.
-  //
-  // A gallery website:
-  //
-  //   import { standardRoutes } from '@museumwnf/viewer-layout/dxa'
-  //
-  //   extraViews: [
-  //     ...standardRoutes('gallery', { creditsBody: 'withBrushAndQalam.credits.body' }),
-  //     // + this website's own routes: home, item, collection entrance,
-  //     // timeline entrance, partners entrance
-  //   ]
-  //
-  // An exhibition website:
-  //
-  //   import { standardRoutes } from '@museumwnf/viewer-layout/dxa'
-  //
-  //   extraViews: [
-  //     ...standardRoutes('exhibition', {
-  //       partnerObjects: {
-  //         emptyPartner: 'withBrushAndQalam.partnerObjects.emptyPartner',
-  //         emptyInstitution: 'withBrushAndQalam.partnerObjects.emptyInstitution',
-  //         institutionSummary: 'withBrushAndQalam.partner.monumentsInExhibition',
-  //         partnerProfileLabel: 'withBrushAndQalam.partnerObjects.partnerProfile',
-  //         institutionProfileLabel: 'withBrushAndQalam.partnerObjects.institutionProfile',
-  //       },
-  //     }),
-  //     // + this website's own routes: home, item, collection entrance,
-  //     // timeline entrance, partners entrance
-  //   ]
+  // The 'home' name replaces viewer-core's generic home route.
   extraViews: [
+    { path: '/', name: 'home', component: () => import('./views/Home.vue'), meta: meta('home') },
+    { path: '/about', name: 'about', component: () => import('./views/About.vue'), meta: meta('about', 'themes') },
+    { path: '/themes', name: 'themes', component: () => import('./views/Themes.vue'), meta: meta('themes', 'themes') },
     {
-      path: '/catalogue',
-      name: 'catalogue',
-      component: CatalogueResultsView,
-      props: { spec: catalogue },
-      meta: meta('catalogue', 'items', 'countries'),
+      path: '/theme/:id/:subtheme?/:image?',
+      name: 'theme',
+      component: () => import('./views/Theme.vue'),
+      meta: meta('themes', 'themes', 'glossary', 'dynasties'),
+    },
+    {
+      path: '/theme-gallery/:id',
+      name: 'theme-gallery',
+      component: () => import('./views/ThemeGallery.vue'),
+      meta: meta('themes', 'themes'),
     },
     {
       path: '/item/:id',
       name: 'item',
-      component: RecordView,
-      props: (route) => ({ spec: sheet, id: route.params.id }),
-      meta: meta('catalogue', 'items', 'countries', 'partners'),
+      component: () => import('./views/ItemSheet.vue'),
+      // The composed RecordView takes the record id as a prop, not a route read.
+      props: (route) => ({ id: route.params.id }),
+      meta: meta('database', 'languages', 'dynasties', 'glossary', 'timelines', 'timeline_events'),
     },
-    {
-      path: '/about',
-      name: 'about',
-      component: TextPageView,
-      props: { spec: about },
-      meta: meta('about'),
-    },
+    // The 11 standard pages this exhibition shares byte-for-byte with
+    // the-use-of-colours-in-art (epic #1731): search, the partner list/profile/objects
+    // and their institution variants, the timeline results/gallery and the
+    // collection entrance/results. Names, paths and `meta` are pinned to
+    // what this site always registered — see the smoke test's `checkRoutes`
+    // assertion below. `texts` carries the five entry names that were never
+    // shared across DXA exhibitions (read off this site's own, now-retired
+    // PartnerObjects.vue/InstitutionMonuments.vue).
+    ...standardRoutes('exhibition', {
+      partnerObjects: {
+        emptyPartner: 'withBrushAndQalam.partnerObjects.emptyPartner',
+        emptyInstitution: 'withBrushAndQalam.partnerObjects.emptyInstitution',
+        institutionSummary: 'withBrushAndQalam.partner.monumentsInExhibition',
+        partnerProfileLabel: 'withBrushAndQalam.partnerObjects.partnerProfile',
+        institutionProfileLabel: 'withBrushAndQalam.partnerObjects.institutionProfile',
+      },
+    }),
+    { path: '/related', name: 'related', component: () => import('./views/RelatedContent.vue'), meta: meta('related', 'related_content') },
+    { path: '/timeline', name: 'timeline', component: () => import('./views/Timeline.vue'), meta: meta('timeline', 'timelines', 'timeline_events') },
+    // No local Credits.vue: legacy's Credits page is a heading (the shell's
+    // own `sectionTitles`), a body and a back link, exactly `TextPageView`'s
+    // shape (`creditsSpec`, composables/textPageSpecs.js).
+    { path: '/credits', name: 'credits', component: TextPageView, props: { spec: creditsSpec }, meta: meta('credits') },
   ],
 
-  // Addresses this website was published under before, each resolving onto a
-  // canonical route above. Redirect-only: no view, no second way to reach a
-  // page. A website that has never moved leaves this empty.
-  legacyRoutes: [],
-
-  // The unmatched-address page is viewer-core's, on a catch-all it adds
-  // itself. Pass `notFound: false` to leave it out, or a component to replace
-  // it — do not declare a `/:pathMatch(.*)*` route here.
+  // The legacy URL shapes, redirect-only, so a legacy address pasted after
+  // the `#` still lands on the right page: the item sheet's dbUid path
+  // (`/database-item/mwnf3/objects/EPM/uk/Mus21/41/en`) resolves through
+  // `backward_compatibility`, the partner's and the institution's country and
+  // legacy id through the partner record; the language segment is dropped and
+  // the page number moves to the query.
+  legacyRoutes: [
+    {
+      path: '/database-item/:uid(.*)/:language',
+      async resolve({ uid }) {
+        await loadEntities(['items'])
+        const item = itemFromUidPath(items.value, uid)
+        return item ? { name: 'item', params: { id: item.id } } : null
+      },
+    },
+    {
+      path: '/partner/:country/:id/:language',
+      async resolve({ country, id }) {
+        await loadEntities(['exhibition', 'partners', 'countries'])
+        const partner = partnerFromKey(visiblePartners.value, countries.value, country, id)
+        return partner ? { name: 'partner', params: { id: partner.id } } : null
+      },
+    },
+    {
+      path: '/partner-objects/:country/:id/:page',
+      async resolve({ country, id, page }) {
+        await loadEntities(['exhibition', 'partners', 'countries'])
+        const partner = partnerFromKey(visiblePartners.value, countries.value, country, id)
+        if (!partner) return null
+        return { name: 'partner-objects', params: { id: partner.id }, query: Number(page) > 1 ? { page } : {} }
+      },
+    },
+    {
+      path: '/institution/:country/:id/:language',
+      async resolve({ country, id }) {
+        await loadEntities(['exhibition', 'partners', 'countries'])
+        const partner = partnerFromKey(visiblePartners.value, countries.value, country, id)
+        return partner ? { name: 'institution', params: { id: partner.id } } : null
+      },
+    },
+    {
+      path: '/institution-monuments/:country/:id/:page',
+      async resolve({ country, id, page }) {
+        await loadEntities(['exhibition', 'partners', 'countries'])
+        const partner = partnerFromKey(visiblePartners.value, countries.value, country, id)
+        if (!partner) return null
+        return { name: 'institution-monuments', params: { id: partner.id }, query: Number(page) > 1 ? { page } : {} }
+      },
+    },
+    {
+      // `begin`/`end`, not the path's own `start`/`end`: viewer-layout's
+      // `TimelineResultsView` renders its date controls under those keys, and
+      // the gallery spec reads the same ones for the query to stay one shape.
+      path: '/timeline-gallery/:country/:start/:end/:page',
+      resolve({ country, start, end, page }) {
+        const query = { country }
+        if (start !== 'any') query.begin = start
+        if (end !== 'any') query.end = end
+        if (Number(page) > 1) query.page = page
+        return { name: 'timeline-gallery', query }
+      },
+    },
+    { path: '/error', resolve: () => null },
+  ],
 }

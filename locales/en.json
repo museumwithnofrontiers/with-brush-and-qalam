@@ -1,12 +1,8 @@
 {
-  "withBrushAndQalam.identity.organisation": "Museum With No Frontiers",
-  "withBrushAndQalam.identity.title": "with-brush-and-qalam",
-  "withBrushAndQalam.identity.copyright": "© Museum With No Frontiers",
-  "withBrushAndQalam.home.intro": "Welcome to with-brush-and-qalam.",
-  "withBrushAndQalam.home.catalogueText": "Browse every item by country and date.",
-  "withBrushAndQalam.home.itemOnDisplay": "Item on display",
-  "withBrushAndQalam.nav.catalogue": "Catalogue",
-  "withBrushAndQalam.nav.about": "About",
-  "withBrushAndQalam.about.body": "This website is published by Museum With No Frontiers. Replace this text with what with-brush-and-qalam is and who made it.",
-  "withBrushAndQalam.credits.body": "**EXHIBITION CREDITS**  \n***With Brush and Qalam. Chinese Arabic Calligraphy by Haji Noor Deen***  \n  \nConcept and curation: Deniz Erduman-Çalış  \nExhibition texts and translations: Deniz Erduman-Çalış, Shunhua Jin, Franziska Kabelitz, Margaret Shortle, Felicitas von Droste zu Hülshoff  \nOverall handling and technical coordination: Maximilian Heiden  \nImages: Ingrid Geske  \n  \n*With Brush and Qalam* was an exhibition held at the Museum für Islamische Kunst Berlin in 2023.  \n  \nWe would like to thank Haji Noor Deen for his art works and the fruitful cooperation.  \n  \nCopy-editing: Rachel Parish, Alvaro Miranda, Jonathan Turnbull  \n  \n**GENERAL CREDITS**  \n  \nIdea and overall concept: Eva Schubert  \nDatabase: Pascal Havelange  \nApplication Programme Interface: Pascal Havelange  \nVirtual Office: Preigo Fover Technologies  \nDesign: Eva Woo, Eva Schubert  \nFront-end development: Eva Woo  \nContent management: Sarah Hoenigschnabel  \nCopyright: Museum With No Frontiers (MWNF)"
+  "withBrushAndQalam.credits.body": "**EXHIBITION CREDITS**  \n***With Brush and Qalam. Chinese Arabic Calligraphy by Haji Noor Deen***  \n  \nConcept and curation: Deniz Erduman-Çalış  \nExhibition texts and translations: Deniz Erduman-Çalış, Shunhua Jin, Franziska Kabelitz, Margaret Shortle, Felicitas von Droste zu Hülshoff  \nOverall handling and technical coordination: Maximilian Heiden  \nImages: Ingrid Geske  \n  \n*With Brush and Qalam* was an exhibition held at the Museum für Islamische Kunst Berlin in 2023.  \n  \nWe would like to thank Haji Noor Deen for his art works and the fruitful cooperation.  \n  \nCopy-editing: Rachel Parish, Alvaro Miranda, Jonathan Turnbull  \n  \n**GENERAL CREDITS**  \n  \nIdea and overall concept: Eva Schubert  \nDatabase: Pascal Havelange  \nApplication Programme Interface: Pascal Havelange  \nVirtual Office: Preigo Fover Technologies  \nDesign: Eva Woo, Eva Schubert  \nFront-end development: Eva Woo  \nContent management: Sarah Hoenigschnabel  \nCopyright: Museum With No Frontiers (MWNF)",
+  "withBrushAndQalam.partner.monumentsInExhibition": "monument(s) in this Exhibition",
+  "withBrushAndQalam.partnerObjects.emptyInstitution": "This institution holds nothing in this Exhibition.",
+  "withBrushAndQalam.partnerObjects.emptyPartner": "This partner holds nothing in this Exhibition.",
+  "withBrushAndQalam.partnerObjects.institutionProfile": "Institution Profile",
+  "withBrushAndQalam.partnerObjects.partnerProfile": "Partner Profile"
 }
