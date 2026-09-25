@@ -1,10 +1,95 @@
 /*
- * This website's own content styles: the palette its views reference and the
- * building blocks they share (panels, lists, forms, prose).
+ * Global styles shared by every view in this exhibition: the palette the views,
+ * the shell and the layout's content classes reference. The chip classes that
+ * read the source-project accents below are in theme/overrides.css.
  *
- * Page chrome — header, banner, navigation, footer — is themed through
- * theme/tokens.css instead. Keep the two apart: tokens.css is read by
- * @museumwnf/viewer-layout, this file only by the views in src/views/.
+ * The building blocks themselves — panels, selects, buttons, prose, back
+ * bars, loaders, the project chips proper — are viewer-layout's content
+ * classes (the `mwnf-` prefixed ones, see its README's "Content classes"
+ * table); this file no longer carries copies of them.
  *
- * Starts empty on purpose. Nothing here is required for the website to run.
+ * Page chrome — header, banner, navigation, footer surfaces — is themed
+ * through theme/tokens.css instead; this file is the website's own content
+ * layer.
  */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,300;0,400;0,700;1,400&family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap');
+
+/* ── Palette ────────────────────────────────────────────────────────────────
+   The exhibitions client takes its six colours from per-deployment
+   `VUE_APP_VO_*` variables rather than a checked-in SCSS file. These are this
+   deployment's own, read off its live compiled stylesheet:
+
+     MAIN #28282d / MAIN_TEXT #ffffff    banner, footer, the themes' frames
+     SECONDARY #ffffff / SECONDARY_TEXT #000000   the content panels
+     CONTRAST #fdcece / CONTRAST_TEXT #000000   navigation, theme titles, bottom banner
+
+   Every deployment sets its own, which is why every rule below reads a
+   variable instead of a literal.
+
+   The same six values are also declared as `--mwnf-*` tokens in
+   theme/tokens.css, which is what a webdesigner edits; these names exist
+   because the views address the palette by them. */
+:root {
+  --main-color:            #28282d;
+  --main-text-color:       #ffffff;
+  --secondary-color:       #ffffff;
+  --secondary-text-color:  #000000;
+  --contrast-color:        #fdcece;
+  --contrast-text-color:   #000000;
+
+  --shadow-grey: #707070;
+  --link-blue:   #0000ff;
+  --rule-grey:   #e0e0e0;
+
+  /* Source-project accents — legacy's #info-citation-link colouring, one tone
+     per project family (which projects this exhibition borrows from is a
+     property of the export and moves with every reimport, so every family it
+     has ever borrowed from is declared, whether or not this build's own
+     `projectColors` map, dataset.config.js, still lists it). Epic #1727 phase
+     4: these no longer feed viewer-layout's shared `mwnf-chip--<family>`
+     classes through `--mwnf-project-*` tokens — this exhibition no longer
+     computes a "family" from a legacy project key at all, so it defines its
+     own `mwnf-chip--<name>` rules directly, in theme/overrides.css,
+     instead. */
+  --dia-yellow:    #ffcc00;  /* Discover Islamic Art */
+  --dba-blue:      #001d66;  /* Discover Baroque Art */
+  --sh-red:        #900000;  /* Sharing History */
+  --dca-tan:       #6b612b;  /* Discover Carpet Art */
+  --dga-blue:      #0059bf;  /* Discover Glass Art */
+  --explore-green: #006950;  /* Explore monuments database (no project at all) */
+  --g-grey:        #263238;  /* MWNF Galleries */
+  --exhibitions:   #7f01d4;  /* This exhibition's own native project */
+
+  /* The database half of this site — collection search and results, the item
+     sheet, partners, the timeline — is the gallery client's, and carries
+     several hundred CSS rules that address the palette by the gallery variable
+     names. Binding those names here keeps one palette for the whole site
+     instead of two spellings of it.
+
+     The mapping is not one-to-one: the galleries have four tones of a single
+     hue, this exhibition has a black/white base plus one accent. Every gallery
+     tone that carries light text maps onto the main colour, so the contrast
+     pairs stay legible; only the tone used behind dark text becomes the
+     accent. */
+  --theme-dark:        var(--main-color);
+  --theme-medium-dark: var(--main-color);
+  --theme-medium:      var(--main-color);
+  --theme-light:       var(--contrast-color);
+  --light-text:        var(--main-text-color);
+  --background-color:  var(--secondary-color);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--secondary-color);
+  color: var(--secondary-text-color);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-x: hidden;
+}
+
+html[dir='rtl'] body { direction: rtl; }
+
+a { color: inherit; }
