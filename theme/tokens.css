@@ -227,4 +227,15 @@
      alongside this story. */
   --mwnf-partner-list-group-title-size: 1.25rem;
   --mwnf-partner-list-group-title-color: #000000;
+
+  /* ---------- Content: the popup and the notes on the secondary ground ---------- */
+  /* The logo popup, the muted notes (captions, credits, counts, card numbers)
+     and the record's source id take the secondary ground's colours, as
+     legacy's #popup and panels did. The layout's own defaults assume a white
+     ground, which a deployment's secondary colour need not be. */
+  --mwnf-popup-logo-bg: #ffffff;
+  --mwnf-popup-logo-color: #000000;
+  --mwnf-popup-logo-close-color: #000000;
+  --mwnf-card-number-color: #555555;
+  --mwnf-sheet-source-uid-color: #666666;
 }
