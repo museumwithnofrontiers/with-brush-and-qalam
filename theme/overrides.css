@@ -21,7 +21,7 @@
   position: sticky;
   top: 0;
   z-index: 90;
-  border-bottom: 5px solid var(--contrast-color, #a3d6d9);
+  border-bottom: 5px solid var(--contrast-color, #fdcece);
 }
 .mwnf-nav {
   z-index: 89;
@@ -46,7 +46,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--contrast-color, #a3d6d9);
+  background: var(--contrast-color, #fdcece);
   border: 1px solid rgba(0, 0, 0, 0.05);
   line-height: 28px;
 }
@@ -94,18 +94,19 @@
 .mwnf-prose a { color: var(--link-blue); }
 
 /* ── Source-project chip colours (epic #1727 phase 4) ──────────────────────
-   ItemSheet.vue's own `mwnf-chip--<name>` classes, one per project family
-   this exhibition borrows from — the site's own content style (designer-
-   contract.md role 3), replacing viewer-layout's shared
-   `mwnf-chip--<family>` classes (content.css), which this exhibition no
-   longer uses now that a family is a `dataset.config.js` `projectColors`
-   lookup by project UUID, not a legacy-key-keyed one. The `Explore` case is
-   the one family the manifest cannot name (a member with no `project_id` at
-   all, sourced from the Explore monuments database rather than from a
-   project — `isExploreRecord` in useExhibitionData.js); legacy still
-   coloured it, on `#info-citation-link`'s `Explore` class. */
+   ItemSheet.vue's own `mwnf-chip--<name>` classes, one per project family —
+   the site's own content style (designer-contract.md role 3), replacing
+   viewer-layout's shared `mwnf-chip--<family>` classes (content.css), which
+   this exhibition no longer uses now that a family is a `dataset.config.js`
+   `projectColors` lookup by project UUID, not a legacy-key-keyed one. The
+   `Explore` case is the one family the manifest cannot name (a member with
+   no `project_id` at all, sourced from the Explore monuments database rather
+   than from a project — `isExploreRecord` in useExhibitionData.js); legacy
+   still coloured it, on `#info-citation-link`'s `Explore` class. */
 .mwnf-chip--islamic-art     { background-color: var(--dia-yellow);     color: #000000; }
+.mwnf-chip--baroque-art     { background-color: var(--dba-blue);       color: #ffffff; }
 .mwnf-chip--sharing-history { background-color: var(--sh-red);         color: #ffffff; }
+.mwnf-chip--carpet-art      { background-color: var(--dca-tan);        color: #ffffff; }
 .mwnf-chip--glass-art       { background-color: var(--dga-blue);       color: #ffffff; }
 .mwnf-chip--galleries       { background-color: var(--g-grey);         color: #ffffff; }
 .mwnf-chip--exhibition      { background-color: var(--exhibitions);    color: #ffffff; }
@@ -120,7 +121,7 @@
    the blocks sit), so it stays here rather than in a component style block:
    `.mwnf-record__main`'s own children are viewer-layout's, addressed by the
    same classes content.css itself styles their insides with. */
-.database-page { background: #ffffff; width: 100%; min-height: 400px; }
+.database-page { background: var(--secondary-color, #ffffff); width: 100%; min-height: 400px; }
 
 .database-page .languages { background: var(--rule-grey); padding: 6px 20px; }
 
