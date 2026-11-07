@@ -19,7 +19,7 @@
     "@museumwnf/viewer-core": "^2.18.0",
     "@museumwnf/viewer-i18n": "^6.13.0",
     "@museumwnf/viewer-layout": "^3.66.1",
-    "@museumwnf/with-brush-and-qalam-data": "^1.0.18",
+    "@museumwnf/with-brush-and-qalam-data": "^1.0.19",
     "vue": "^3.5.44",
     "vue-router": "^5.4.0"
   },
