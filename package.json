@@ -16,10 +16,10 @@
     "namespace": "withBrushAndQalam"
   },
   "dependencies": {
-    "@museumwnf/viewer-core": "^2.18.0",
-    "@museumwnf/viewer-i18n": "^6.15.0",
-    "@museumwnf/viewer-layout": "^3.68.1",
-    "@museumwnf/with-brush-and-qalam-data": "^1.0.19",
+    "@museumwnf/viewer-core": "^2.19.0",
+    "@museumwnf/viewer-i18n": "^6.16.0",
+    "@museumwnf/viewer-layout": "^3.69.0",
+    "@museumwnf/with-brush-and-qalam-data": "^1.0.20",
     "vue": "^3.5.44",
     "vue-router": "^5.4.0"
   },
